@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Auth Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; }
+    input, button { padding: 8px; margin: 6px 0; width: 100%; }
+    pre { background: #111; color: #eee; padding: 10px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>JWT + Hashing Demo</h1>
+  <p>This page talks to your Axum + GraphQL server.</p>
+
+  <h2>1 Register</h2>
+  <input id="regEmail" placeholder="email" />
+  <input id="regPass" placeholder="password" type="password" />
+  <button onclick="register()">Register</button>
+
+  <h2>2 Login (3-minute token)</h2>
+  <input id="logEmail" placeholder="email" />
+  <input id="logPass" placeholder="password" type="password" />
+  <button onclick="login()">Login</button>
+  <p><strong>JWT:</strong></p>
+  <pre id="tokenBox"></pre>
+
+  <h2>3 Access locked page</h2>
+  <button onclick="secret()">GET /secret</button>
+  <pre id="secretBox"></pre>
+
+  <script>
+    const GQL = "/graphql";
+    let token = "";
+
+    async function gql(query, variables) {
+      const res = await fetch(GQL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(token ? { "Authorization": "Bearer " + token } : {}) },
+        body: JSON.stringify({ query, variables })
+      });
+      return res.json();
+    }
+
+    async function register() {
+      const email = document.getElementById("regEmail").value;
+      const password = document.getElementById("regPass").value;
+      const q = `mutation($input: RegisterInput!){
+        register(input:$input){ id email is_admin }
+      }`;
+      const data = await gql(q, { input: { email, password } });
+      alert("Registered: " + JSON.stringify(data));
+    }
+
+    async function login() {
+      const email = document.getElementById("logEmail").value;
+      const password = document.getElementById("logPass").value;
+      const q = `mutation($input: LoginInput!){ login(input:$input) }`;
+      const data = await gql(q, { input: { email, password } });
+      token = data.data?.login || "";
+      document.getElementById("tokenBox").textContent = token ? token : "(login failed)";
+    }
+
+    async function secret() {
+      const res = await fetch("/secret", {
+        headers: token ? { "Authorization": "Bearer " + token } : {}
+      });
+      document.getElementById("secretBox").textContent =
+        res.status + " " + res.statusText + "\n" + await res.text();
+    }
+  </script>
+</body>
+</html>
