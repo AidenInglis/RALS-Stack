@@ -112,6 +112,30 @@ impl QueryRoot {
         let st = ctx.data_unchecked::<AppState>();
         Ok(db::get_coupon_by_code(&st.pool, &code).await?.map(db_coupon_to_gql))
     }
+    async fn my_coupons(&self, ctx: &Context<'_>) -> GqlResult<Vec<Coupon>> {
+        use sqlx::Row;
+        let st = ctx.data_unchecked::<AppState>();
+        let uid = require_user(ctx, &st.jwt_secret)?;
+        let now = chrono::Utc::now().timestamp();
+        let rows = sqlx::query(
+            "SELECT id,code,description,service,expires_at,owner_id,created_at
+             FROM coupons WHERE owner_id = ? AND expires_at > ? ORDER BY created_at DESC"
+        )
+        .bind(uid)
+        .bind(now)
+        .fetch_all(&st.pool)
+        .await?;
+
+        Ok(rows.into_iter().map(|r| Coupon {
+            id: r.get("id"),
+            code: r.get("code"),
+            description: r.get("description"),
+            service: r.get("service"),
+            expires_at: r.get("expires_at"),
+            owner_id: r.get::<Option<String>,_>("owner_id"),
+            created_at: r.get("created_at"),
+        }).collect())
+    }
 }
 
 pub struct MutationRoot;
@@ -132,6 +156,21 @@ impl MutationRoot {
         let u = db::create_user(&st.pool, &input.email, &hash, is_first).await?;
 
         Ok(User { id: u.id, email: u.email, is_admin: u.is_admin })
+    }
+
+    /// Claim an unowned, non-expired coupon for the current user.
+    async fn claimCoupon(&self, ctx: &Context<'_>, code: String) -> GqlResult<Option<Coupon>> {
+        let st = ctx.data_unchecked::<AppState>();
+        let uid = require_user(ctx, &st.jwt_secret)?;
+        let claimed = db::claim_coupon(&st.pool, &code, &uid).await?;
+        Ok(claimed.map(db_coupon_to_gql))
+    }
+
+    /// Release a coupon currently owned by the user.
+    async fn releaseCoupon(&self, ctx: &Context<'_>, code: String) -> GqlResult<bool> {
+        let st = ctx.data_unchecked::<AppState>();
+        let uid = require_user(ctx, &st.jwt_secret)?;
+        Ok(db::release_coupon(&st.pool, &code, &uid).await?)
     }
 
     async fn login(&self, ctx: &Context<'_>, input: LoginInput) -> GqlResult<String> {
@@ -194,6 +233,13 @@ impl MutationRoot {
     }
 }
 
+fn require_user(ctx: &Context<'_>, secret: &str) -> anyhow::Result<String> {
+    if let Some(uid) = user_id_from_headers(ctx, secret)? {
+        Ok(uid)
+    } else {
+        anyhow::bail!("Unauthorized: missing bearer token");
+    }
+}
 // ---------- Helpers ----------
 fn bearer_token_from_ctx(ctx: &Context<'_>) -> Option<String> {
     ctx.data_opt::<axum::http::HeaderMap>()?

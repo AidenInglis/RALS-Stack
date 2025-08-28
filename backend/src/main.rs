@@ -35,7 +35,7 @@ async fn main() -> anyhow::Result<()> {
     let jwt_secret =
         std::env::var("JWT_SECRET").unwrap_or_else(|_| "dev-secret-change-me".into());
     let database_url =
-        std::env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite://app.db".into());
+        std::env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite://backend/app.db".into());
 
     let pool = db::pool(&database_url).await?;
 

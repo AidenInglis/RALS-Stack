@@ -1,5 +1,5 @@
 # RALS-Stack
-
+guide below
 
 
 
@@ -9,6 +9,15 @@ mutation {
   login(input:{email:"admin@example.com", password:"pass1234"})
 }
 
+mutation {
+  login(input:{email:"aiden@aiden.aiden", password:"aiden"})
+}
+
+
+
+{ 
+  "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJiNGEzYzg5Yi04MTY1LTQ1MGMtYjA0NS1iMjA1ZTJmMTY5ZWIiLCJleHAiOjE3NTYzMDI0OTF9.NT-PD4bKbVqdfzm6sjVi7WBOv0tOfKx0fsIYnpN-wG8"
+}
 
 mutation CreateCoupon {
   createCoupon(input:{
@@ -32,3 +41,16 @@ mutation UpdateCoupon {
 mutation DeleteCoupon {
   deleteCoupon(code: "HELLO10")
 }
+
+mutation {
+  claimCoupon(code:"HELLO10") {
+    id code owner_id expires_at
+  }
+}
+
+
+query {
+  myCoupons { code description service expires_at owner_id }
+}
+
+mutation { releaseCoupon(code:"HELLO10") }

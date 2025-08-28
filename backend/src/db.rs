@@ -209,3 +209,35 @@ pub async fn list_coupons(pool: &SqlitePool, active_only: bool) -> Result<Vec<Db
         })
         .collect())
 }
+
+// User claims an unowned, non-expired coupon.
+// Returns the coupon if claim succeeded, or Ok(None) if it was already owned/expired/not found.
+pub async fn claim_coupon(pool: &SqlitePool, code: &str, user_id: &str) -> Result<Option<DbCoupon>> {
+    let now = Utc::now().timestamp();
+    let n = sqlx::query(
+        "UPDATE coupons SET owner_id=? WHERE code=? AND owner_id IS NULL AND expires_at > ?"
+    )
+    .bind(user_id)
+    .bind(code)
+    .bind(now)
+    .execute(pool)
+    .await?
+    .rows_affected();
+
+    if n == 1 {
+        get_coupon_by_code(pool, code).await
+    } else {
+        Ok(None)
+    }
+}
+
+// User releases a coupon they own.
+pub async fn release_coupon(pool: &SqlitePool, code: &str, user_id: &str) -> Result<bool> {
+    let n = sqlx::query("UPDATE coupons SET owner_id=NULL WHERE code=? AND owner_id=?")
+        .bind(code)
+        .bind(user_id)
+        .execute(pool)
+        .await?
+        .rows_affected();
+    Ok(n == 1)
+}

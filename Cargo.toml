@@ -1,33 +1,10 @@
-[package]
-name = "coupon-auth"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+members = ["backend", "frontend"]
 
-[dependencies]
-# Use Axum 0.8 to match async-graphql-axum v7 (prevents two axum versions)
-axum = "0.8"
-tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
-
-# DB
-sqlx = { version = "0.7", features = ["runtime-tokio", "macros", "sqlite", "chrono"] }
-
-# ServeDir needs the fs feature
-tower-http = { version = "0.5", features = ["cors", "trace", "fs"] }
-
-# GraphQL
-async-graphql = "7"
-async-graphql-axum = "7"
-
-# Auth & utils
-argon2 = "0.5"
-jsonwebtoken = "9"
-chrono = { version = "0.4", features = ["serde"] }
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-uuid = { version = "1", features = ["v4", "serde"] }
-anyhow = "1"
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-
-# Use rand_core 0.6 with getrandom feature (compatible with password-hash)
-rand_core = { version = "0.6", features = ["getrandom"] }
+[workspace.dependencies]
+leptos = { version = "0.6", features = ["csr"] }
+leptos_router = { version = "0.6", features = ["csr"] }
+reqwest = { version = "0.12", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+web-sys = { version = "0.3", features = ["Window", "Storage"] }

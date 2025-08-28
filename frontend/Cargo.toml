@@ -9,3 +9,4 @@ leptos_router = { workspace = true }
 reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+web-sys = { workspace = true } 
