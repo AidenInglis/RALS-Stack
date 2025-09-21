@@ -1,6 +1,15 @@
 # RALS-Stack
 guide below
 
+frontend:
+trunk serve --open
+
+Backend:
+cargo run
+
+Database:
+sqlx migrate run 
+
 
 
 stuff for testing in graphql
@@ -43,7 +52,7 @@ mutation DeleteCoupon {
 }
 
 mutation {
-  claimCoupon(code:"HELLO10") {
+  claim_coupon(code:"HELLO10") {
     id code owner_id expires_at
   }
 }
@@ -53,4 +62,4 @@ query {
   myCoupons { code description service expires_at owner_id }
 }
 
-mutation { releaseCoupon(code:"HELLO10") }
+mutation { release_coupon(code:"HELLO10") }

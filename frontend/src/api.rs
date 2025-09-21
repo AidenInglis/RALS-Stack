@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use reqwest::Client;
-use web_sys::console; // 👈 use this for logging
+use web_sys::console; // logging
 
 const GRAPHQL_ENDPOINT: &str = "http://localhost:3000/graphql";
 

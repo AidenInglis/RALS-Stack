@@ -159,7 +159,7 @@ impl MutationRoot {
     }
 
     /// Claim an unowned, non-expired coupon for the current user.
-    async fn claimCoupon(&self, ctx: &Context<'_>, code: String) -> GqlResult<Option<Coupon>> {
+    async fn claim_coupon(&self, ctx: &Context<'_>, code: String) -> GqlResult<Option<Coupon>> {
         let st = ctx.data_unchecked::<AppState>();
         let uid = require_user(ctx, &st.jwt_secret)?;
         let claimed = db::claim_coupon(&st.pool, &code, &uid).await?;
@@ -167,7 +167,7 @@ impl MutationRoot {
     }
 
     /// Release a coupon currently owned by the user.
-    async fn releaseCoupon(&self, ctx: &Context<'_>, code: String) -> GqlResult<bool> {
+    async fn release_coupon(&self, ctx: &Context<'_>, code: String) -> GqlResult<bool> {
         let st = ctx.data_unchecked::<AppState>();
         let uid = require_user(ctx, &st.jwt_secret)?;
         Ok(db::release_coupon(&st.pool, &code, &uid).await?)

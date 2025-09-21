@@ -191,6 +191,7 @@ fn Register() -> impl IntoView {
     let on_submit = move |_| {
         // TODO: hook into backend mutation (register user)
         logging::log!("📦 Register with email={} password={}", email.get(), password.get());
+
     };
 
     view! {
